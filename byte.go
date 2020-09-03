@@ -1,5 +1,6 @@
 package tox
 
+// ToBool converts bool, string, or byte arrays, if the conversion fails, it returns false.
 func ToByteArray(v interface{}) []byte {
 	switch v := v.(type) {
 	case bool:

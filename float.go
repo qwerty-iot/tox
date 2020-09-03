@@ -1,7 +1,11 @@
 package tox
 
-import "strconv"
+import (
+	"math"
+	"strconv"
+)
 
+// ToFloat64 converts any data type to a float64, if the conversion fails, it returns NaN.
 func ToFloat64(v interface{}) float64 {
 	switch v := v.(type) {
 	case int:
@@ -34,10 +38,9 @@ func ToFloat64(v interface{}) float64 {
 	case bool:
 		if v {
 			return float64(1)
-		} else {
-			return float64(0)
 		}
-	default:
 		return float64(0)
+	default:
+		return math.NaN()
 	}
 }

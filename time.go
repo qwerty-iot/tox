@@ -2,6 +2,8 @@ package tox
 
 import "time"
 
+// ToTime converts data types to time.Time structures.  'int' or 'int64' are treated as unix time, strings are treated
+// as RFC3330Nano timestamps.  If the conversion fails, an empty time.Time{} is returned.
 func ToTime(v interface{}) time.Time {
 	switch v := v.(type) {
 	case int:

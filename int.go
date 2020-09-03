@@ -2,10 +2,11 @@ package tox
 
 import "strconv"
 
+// ToInt converts any data type to a bool, if the conversion fails, it returns 0.
 func ToInt(v interface{}) int {
 	switch v := v.(type) {
 	case int:
-		return int(v)
+		return v
 	case int8:
 		return int(v)
 	case int16:
@@ -34,9 +35,8 @@ func ToInt(v interface{}) int {
 	case bool:
 		if v {
 			return 1
-		} else {
-			return 0
 		}
+		return 0
 	default:
 		return 0
 	}
