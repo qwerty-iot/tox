@@ -1,4 +1,4 @@
-module github.com/tartabit/tox/v1
+module github.com/tartabit/tox
 
 go 1.14
 
