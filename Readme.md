@@ -16,7 +16,7 @@ go get github.com/tartabit/tox
 ## Usage
 
 ```golang
-import "github.com/tartabit/tox/v1"
+import "github.com/tartabit/tox"
 
 var myint = 5
 var mystring = tox.ToString(myint)
