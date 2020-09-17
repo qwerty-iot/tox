@@ -31,7 +31,7 @@ func ToStringArray(v interface{}) []string {
 	case []string:
 		return v
 	case []interface{}:
-		var ret []string
+		var ret = make([]string, len(v))
 		for ii, vv := range v {
 			ret[ii] = ToString(vv)
 		}
