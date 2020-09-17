@@ -30,6 +30,12 @@ func ToStringArray(v interface{}) []string {
 		return []string{v}
 	case []string:
 		return v
+	case []interface{}:
+		var ret []string
+		for ii, vv := range v {
+			ret[ii] = ToString(vv)
+		}
+		return ret
 	default:
 		return nil
 	}
