@@ -1,6 +1,7 @@
 package tox
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -16,6 +17,13 @@ func ToString(v interface{}) string {
 		return ""
 	case string:
 		return v
+	case map[string]interface{}:
+		b, err := json.Marshal(v)
+		if err != nil {
+			return fmt.Sprintf("%v", v)
+		} else {
+			return string(b)
+		}
 	default:
 		return fmt.Sprintf("%v", v)
 	}
