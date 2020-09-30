@@ -3,6 +3,7 @@ package tox
 import (
 	"encoding/json"
 	"fmt"
+	"unicode/utf8"
 )
 
 // ToString converts any data type to a string, it uses fmt.Sprintf() to convert unknown types.
@@ -17,6 +18,12 @@ func ToString(v interface{}) string {
 		return ""
 	case string:
 		return v
+	case []byte:
+		if utf8.Valid(v) {
+			return string(v)
+		} else {
+			return fmt.Sprintf("%v", v)
+		}
 	case map[string]interface{}:
 		b, err := json.Marshal(v)
 		if err != nil {
