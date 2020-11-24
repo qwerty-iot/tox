@@ -1,4 +1,4 @@
-module github.com/tartabit/tox
+module github.com/qwerty-iot/tox
 
 go 1.14
 
