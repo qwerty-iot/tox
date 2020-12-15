@@ -63,3 +63,11 @@ func ToBool(v interface{}) bool {
 	}
 	return false
 }
+
+func ToBoolPtr(v interface{}) *bool {
+	if v == nil {
+		return nil
+	}
+	ret := ToBool(v)
+	return &ret
+}

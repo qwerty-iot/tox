@@ -64,3 +64,11 @@ func ToStringArray(v interface{}) []string {
 		return nil
 	}
 }
+
+func ToStringPtr(v interface{}) *string {
+	if v == nil {
+		return nil
+	}
+	ret := ToString(v)
+	return &ret
+}

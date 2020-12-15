@@ -41,3 +41,11 @@ func ToInt(v interface{}) int {
 		return 0
 	}
 }
+
+func ToIntPtr(v interface{}) *int {
+	if v == nil {
+		return nil
+	}
+	ret := ToInt(v)
+	return &ret
+}

@@ -44,3 +44,11 @@ func ToFloat64(v interface{}) float64 {
 		return math.NaN()
 	}
 }
+
+func ToFloat64Ptr(v interface{}) *float64 {
+	if v == nil {
+		return nil
+	}
+	ret := ToFloat64(v)
+	return &ret
+}
