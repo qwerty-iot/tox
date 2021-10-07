@@ -71,3 +71,11 @@ func ToBoolPtr(v interface{}) *bool {
 	ret := ToBool(v)
 	return &ret
 }
+
+func TriBool(b *bool) bool {
+	if b != nil {
+		return *b
+	} else {
+		return false
+	}
+}
