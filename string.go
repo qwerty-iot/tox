@@ -18,6 +18,8 @@ func ToString(v interface{}) string {
 		return ""
 	case string:
 		return v
+	case int, int64, uint, uint64, float64, float32, int8, int16, uint8, uint16:
+		return fmt.Sprintf("%v", v)
 	case []byte:
 		if utf8.Valid(v) {
 			return string(v)
@@ -32,7 +34,12 @@ func ToString(v interface{}) string {
 			return string(b)
 		}
 	default:
-		return fmt.Sprintf("%v", v)
+		b, err := json.Marshal(v)
+		if err != nil {
+			return fmt.Sprintf("%v", v)
+		} else {
+			return string(b)
+		}
 	}
 }
 
