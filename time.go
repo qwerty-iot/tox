@@ -22,3 +22,11 @@ func ToTime(v interface{}) time.Time {
 		return time.Time{}
 	}
 }
+
+func ToTimePtr(v interface{}) *time.Time {
+	if v == nil {
+		return nil
+	}
+	ret := ToTime(v)
+	return &ret
+}
