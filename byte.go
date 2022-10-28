@@ -18,3 +18,10 @@ func ToByteArray(v interface{}) []byte {
 		return nil
 	}
 }
+
+func TruncateByteArray(b []byte, length int) []byte {
+	if len(b) > length {
+		return b[:length]
+	}
+	return b
+}

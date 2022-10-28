@@ -79,3 +79,10 @@ func ToStringPtr(v interface{}) *string {
 	ret := ToString(v)
 	return &ret
 }
+
+func TruncateString(s string, length int) string {
+	if len(s) > length {
+		return s[:length]
+	}
+	return s
+}
