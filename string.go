@@ -80,6 +80,17 @@ func ToStringPtr(v interface{}) *string {
 	return &ret
 }
 
+func ToStringPtrOpts(v interface{}, options *Options) *string {
+	if v == nil {
+		return nil
+	}
+	ret := ToString(v)
+	if options != nil && options.EmptyStringAsNull && ret == "" {
+		return nil
+	}
+	return &ret
+}
+
 func TruncateString(s string, length int) string {
 	if len(s) > length {
 		return s[:length]
