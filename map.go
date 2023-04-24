@@ -39,3 +39,28 @@ func ToMapStringInterface(v interface{}) map[string]interface{} {
 		return ret
 	}
 }
+
+func FlattenMap(m map[string]any, delim string) map[string]any {
+	output := make(map[string]any)
+
+	hasSubmaps := false
+	for _, value := range m {
+		if _, ok := value.(map[string]any); ok {
+			hasSubmaps = true
+		}
+	}
+	if !hasSubmaps {
+		return m
+	}
+	for key, value := range m {
+		if submap, ok := value.(map[string]any); ok {
+			flattenedSubmap := FlattenMap(submap, delim)
+			for subkey, subvalue := range flattenedSubmap {
+				output[key+delim+subkey] = subvalue
+			}
+		} else {
+			output[key] = value
+		}
+	}
+	return output
+}
