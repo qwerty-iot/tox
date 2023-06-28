@@ -264,6 +264,25 @@ func (o Object) GetIntPtr(key string, def int) *int {
 	}
 }
 
+func (o Object) GetFloat64(key string, def float64) float64 {
+	if field := o.Get(key); field != nil {
+		return ToFloat64(field)
+	} else {
+		return def
+	}
+}
+
+func (o Object) GetFloat64Ptr(key string, def float64) *float64 {
+	if field := o.Get(key); field != nil {
+		return ToFloat64Ptr(field)
+	} else {
+		if def == math.NaN() {
+			return nil
+		}
+		return ToFloat64Ptr(def)
+	}
+}
+
 func (o Object) GetBool(key string, def bool) bool {
 	if field := o.Get(key); field != nil {
 		return ToBool(field)
