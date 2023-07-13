@@ -3,6 +3,7 @@ package tox
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"unicode/utf8"
 )
 
@@ -61,13 +62,21 @@ func ToStringArray(v interface{}) []string {
 		return []string{v}
 	case []string:
 		return v
-	case []interface{}:
+	case []any:
 		var ret = make([]string, len(v))
 		for ii, vv := range v {
 			ret[ii] = ToString(vv)
 		}
 		return ret
 	default:
+		aVal := reflect.ValueOf(v)
+		if aVal.Kind() == reflect.Array || aVal.Kind() == reflect.Slice {
+			var ret = make([]string, aVal.Len())
+			for i := 0; i < aVal.Len(); i++ {
+				ret[i] = ToString(aVal.Index(i).Interface())
+			}
+			return ret
+		}
 		return nil
 	}
 }

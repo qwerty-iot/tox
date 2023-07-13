@@ -1,6 +1,9 @@
 package tox
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"reflect"
+)
 
 // ToMapStringString converts a generic map[string]interface{} to a map[string]string.
 func ToMapStringString(v interface{}) map[string]string {
@@ -39,6 +42,20 @@ func ToMapStringInterface(v interface{}) map[string]interface{} {
 			return nil
 		}
 		return ret
+	}
+}
+
+func MapKeysToArray(m any) []any {
+	val := reflect.ValueOf(m)
+	if val.Kind() == reflect.Map && val.Len() > 0 {
+		ret := make([]any, val.Len())
+		keys := val.MapKeys()
+		for idx, key := range keys {
+			ret[idx] = key.Interface()
+		}
+		return ret
+	} else {
+		return nil
 	}
 }
 
