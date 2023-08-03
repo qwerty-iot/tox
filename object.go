@@ -3,6 +3,7 @@ package tox
 import (
 	"encoding/json"
 	"math"
+	"reflect"
 	"strings"
 	"time"
 	"unicode"
@@ -198,17 +199,15 @@ func (o Object) Get(key string) any {
 
 func (o Object) GetObjectArray(key string) []Object {
 	if field := o.Get(key); field != nil {
-		if arr, ok := field.([]any); ok {
-			var ret []Object
-			for _, item := range arr {
-				if mi, ok := item.(map[string]any); ok {
-					ret = append(ret, mi)
-				}
+		fieldVal := reflect.ValueOf(field)
+		if fieldVal.Kind() == reflect.Array || fieldVal.Kind() == reflect.Slice {
+			var ret = make([]Object, fieldVal.Len())
+			for i := 0; i < fieldVal.Len(); i++ {
+				ret[i] = NewObject(fieldVal.Index(i).Interface())
 			}
 			return ret
-		} else {
-			return nil
 		}
+		return nil
 	} else {
 		return nil
 	}
