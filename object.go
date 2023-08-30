@@ -402,6 +402,10 @@ func isASCII(s []byte) bool {
 	return true
 }
 
+const (
+	BlankString = "(blank)"
+)
+
 func (o Object) Set(key string, value any) {
 	if value == nil {
 		return
@@ -409,6 +413,9 @@ func (o Object) Set(key string, value any) {
 		return
 	} else if vm, ok := value.(map[string]any); ok && len(vm) == 0 {
 		return
+	}
+	if value == BlankString {
+		value = ""
 	}
 	parts := strings.Split(key, ".")
 	if len(parts) == 1 {
