@@ -404,7 +404,20 @@ func isASCII(s []byte) bool {
 
 const (
 	BlankString = "(blank)"
+	Null        = "(null)"
 )
+
+func (o Object) SetNullIfNotExist(key string) {
+	if o.Get(key) == nil {
+		o.Set(key, Null)
+	}
+}
+
+func (o Object) SetIfNotExist(key string, value any) {
+	if o.Get(key) == nil {
+		o.Set(key, value)
+	}
+}
 
 func (o Object) Set(key string, value any) {
 	if value == nil {
@@ -416,6 +429,8 @@ func (o Object) Set(key string, value any) {
 	}
 	if value == BlankString {
 		value = ""
+	} else if value == Null {
+		value = nil
 	}
 	parts := strings.Split(key, ".")
 	if len(parts) == 1 {
