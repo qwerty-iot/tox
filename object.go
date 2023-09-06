@@ -84,6 +84,17 @@ func keyIndex(key string) (string, int) {
 	}
 }
 
+func (o Object) Move(from string, to string) {
+	if from == to {
+		return
+	}
+	f := o.Get(from)
+	if f != nil {
+		o.Set(to, f)
+		o.Delete(from)
+	}
+}
+
 func (o Object) Delete(key string) {
 	idx := strings.LastIndex(key, ".")
 	if idx == -1 {
