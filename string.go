@@ -3,14 +3,19 @@ package tox
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"reflect"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 )
 
 // ToString converts any data type to a string, it uses fmt.Sprintf() to convert unknown types.
 func ToString(v interface{}) string {
+	return ToStringOpts(v, nil)
+}
+func ToStringOpts(v interface{}, options *Options) string {
 	switch v := v.(type) {
 	case bool:
 		if v {
@@ -21,8 +26,23 @@ func ToString(v interface{}) string {
 		return ""
 	case string:
 		return v
-	case int, int64, uint, uint64, float64, float32, int8, int16, uint8, uint16:
+	case float64:
+		if options != nil && options.FloatToInt {
+			if v == math.Floor(v) {
+				return fmt.Sprintf("%.0f", v)
+			}
+		}
+		if options != nil && options.FloatPrecision > 0 {
+			return fmt.Sprintf("%.*f", options.FloatPrecision, v)
+		} else {
+			return fmt.Sprintf("%f", v)
+		}
+	case float32:
+		return ToStringOpts(float64(v), options)
+	case int, int64, uint, uint64, int8, int16, uint8, uint16:
 		return fmt.Sprintf("%v", v)
+	case time.Duration:
+		return ToPrettyDuration(v, FormatShort)
 	case []byte:
 		if utf8.Valid(v) {
 			return string(v)
@@ -80,6 +100,66 @@ func ToStringArray(v interface{}) []string {
 			return ret
 		}
 		return nil
+	}
+}
+
+type StringFormat int
+
+const (
+	FormatShort  StringFormat = 1
+	FormatMedium StringFormat = 2
+	FormatLong   StringFormat = 3
+)
+
+func ToPrettyDuration(v time.Duration, format StringFormat) string {
+	var r []string
+	days := v / (24 * time.Hour)
+	if days > 0 {
+		switch format {
+		case FormatMedium:
+			r = append(r, fmt.Sprintf("%dd", days))
+		case FormatLong:
+			r = append(r, fmt.Sprintf("%d days", days))
+		}
+	}
+	v -= days * 24 * time.Hour
+
+	hours := v / time.Hour
+	if hours > 0 {
+		switch format {
+		case FormatMedium:
+			r = append(r, fmt.Sprintf("%dh", hours))
+		case FormatLong:
+			r = append(r, fmt.Sprintf("%d hours", hours))
+		}
+	}
+	v -= hours * time.Hour
+
+	minutes := v / time.Minute
+	if minutes > 0 {
+		switch format {
+		case FormatMedium:
+			r = append(r, fmt.Sprintf("%dm", minutes))
+		case FormatLong:
+			r = append(r, fmt.Sprintf("%d minutes", minutes))
+		}
+	}
+	v -= minutes * time.Minute
+
+	seconds := v / time.Second
+	if seconds > 0 {
+		switch format {
+		case FormatMedium:
+			r = append(r, fmt.Sprintf("%ds", seconds))
+		case FormatLong:
+			r = append(r, fmt.Sprintf("%d seconds", seconds))
+		}
+	}
+
+	if format == FormatShort {
+		return fmt.Sprintf("%d.%d:%d:%d", days, hours, minutes, seconds)
+	} else {
+		return strings.Join(r, ", ")
 	}
 }
 
