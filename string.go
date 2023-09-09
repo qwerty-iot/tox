@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -105,4 +107,29 @@ func TruncateString(s string, length int) string {
 		return s[:length]
 	}
 	return s
+}
+
+func CapitalizeString(s string) string {
+	// Split the input string into words
+	words := strings.Fields(s)
+
+	// Initialize an empty slice to store the capitalized words
+	capitalizedWords := make([]string, len(words))
+
+	// Capitalize the first letter of each word and make the rest lowercase
+	for i, word := range words {
+		// Check if the word is empty
+		if len(word) == 0 {
+			continue
+		}
+
+		// Convert the first letter to uppercase and the rest to lowercase
+		capitalizedWord := string(unicode.ToUpper(rune(word[0]))) + strings.ToLower(word[1:])
+		capitalizedWords[i] = capitalizedWord
+	}
+
+	// Join the capitalized words back into a single string
+	result := strings.Join(capitalizedWords, " ")
+
+	return result
 }
