@@ -42,7 +42,7 @@ func NewObject(mi any) Object {
 
 func (o Object) Clone() Object {
 	no, _ := Deepcopy(o)
-	return no.(Object)
+	return no
 }
 
 func countFields(x any) int {

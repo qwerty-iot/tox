@@ -27,6 +27,7 @@ SOFTWARE.
 package tox
 
 import (
+	"errors"
 	"fmt"
 	. "reflect"
 )
@@ -80,9 +81,17 @@ func _primitive(x any, ptrs map[uintptr]any) (any, error) {
 // If we run into that pointer again, we don't make another deep copy of it; we just replace it with
 // the copy we've already made. This also ensures that the cloned result is functionally equivalent
 // to the original value.
-func Deepcopy(x any) (any, error) {
+func Deepcopy[T any](x T) (T, error) {
 	ptrs := make(map[uintptr]any)
-	return _anything(x, ptrs)
+	ret, err := _anything(x, ptrs)
+	if err != nil {
+		return x, err
+	}
+	if rett, ok := ret.(T); ok {
+		return rett, nil
+	} else {
+		return x, errors.New("unable to cast return value")
+	}
 }
 
 func _anything(x any, ptrs map[uintptr]any) (any, error) {
