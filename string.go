@@ -113,6 +113,11 @@ const (
 
 func ToPrettyDuration(v time.Duration, format StringFormat) string {
 	var r []string
+	isNegative := false
+	if v < 0 {
+		v = -v
+		isNegative = true
+	}
 	days := v / (24 * time.Hour)
 	if days > 0 {
 		switch format {
@@ -156,11 +161,16 @@ func ToPrettyDuration(v time.Duration, format StringFormat) string {
 		}
 	}
 
+	var ret string
 	if format == FormatShort {
-		return fmt.Sprintf("%d.%d:%d:%d", days, hours, minutes, seconds)
+		ret = fmt.Sprintf("%d.%d:%d:%d", days, hours, minutes, seconds)
 	} else {
-		return strings.Join(r, ", ")
+		ret = strings.Join(r, ", ")
 	}
+	if isNegative {
+		ret = "-" + ret
+	}
+	return ret
 }
 
 func ToStringPtr(v interface{}) *string {
