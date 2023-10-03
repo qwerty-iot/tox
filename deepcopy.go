@@ -161,6 +161,12 @@ func _pointer(x any, ptrs map[uintptr]any) (any, error) {
 	if v.Kind() != Ptr {
 		return nil, fmt.Errorf("must pass a value with kind of Ptr; got %v", v.Kind())
 	}
+
+	if v.IsNil() {
+		t := TypeOf(x)
+		return Zero(t).Interface(), nil
+	}
+
 	addr := v.Pointer()
 	if dc, ok := ptrs[addr]; ok {
 		return dc, nil
