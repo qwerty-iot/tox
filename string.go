@@ -35,7 +35,7 @@ func ToStringOpts(v interface{}, options *Options) string {
 		if options != nil && options.FloatPrecision > 0 {
 			return fmt.Sprintf("%.*f", options.FloatPrecision, v)
 		} else {
-			return fmt.Sprintf("%f", v)
+			return fmt.Sprintf("%v", v)
 		}
 	case float32:
 		return ToStringOpts(float64(v), options)
