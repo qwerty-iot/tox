@@ -1,8 +1,8 @@
 package tox
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/goccy/go-json"
 	"math"
 	"reflect"
 	"strings"
