@@ -75,6 +75,15 @@ func ToJson(v interface{}) string {
 	}
 }
 
+func ToPrettyJson(v interface{}) string {
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err == nil {
+		return string(b)
+	} else {
+		return fmt.Sprintf("%v", v)
+	}
+}
+
 // ToStringArray can convert a single string to an array, useful if interface could be a string or array of strings.
 func ToStringArray(v interface{}) []string {
 	switch v := v.(type) {
