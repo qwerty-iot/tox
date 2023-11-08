@@ -1,6 +1,7 @@
 package tox
 
 import (
+	"fmt"
 	"github.com/goccy/go-json"
 	"math"
 	"reflect"
@@ -43,6 +44,13 @@ func NewObject(mi any) Object {
 func (o Object) Clone() Object {
 	no, _ := Deepcopy(o)
 	return no
+}
+
+func (o Object) Equals(other Object) bool {
+	if fmt.Sprintf("%v", o) == fmt.Sprintf("%v", other) {
+		return true
+	}
+	return false
 }
 
 func countFields(x any) int {
@@ -473,4 +481,106 @@ func (o Object) Set(key string, value any) {
 
 func (o Object) Merge(other Object) {
 	_ = mergo.Merge(&o, other)
+}
+
+func (o Object) Flatten(delim string) Object {
+	output := make(map[string]any)
+
+	var flatten func(map[string]any, string)
+	flatten = func(m map[string]any, parentKey string) {
+		for k, v := range m {
+			key := parentKey + k
+			if parentKey != "" {
+				key = parentKey + delim + k
+			}
+
+			switch value := v.(type) {
+			case map[string]any:
+				flatten(value, key)
+			case Object:
+				flatten(value, key)
+			default:
+				fieldVal := reflect.ValueOf(value)
+				if fieldVal.Kind() == reflect.Array || fieldVal.Kind() == reflect.Slice {
+					for i := 0; i < fieldVal.Len(); i++ {
+						vv := fieldVal.Index(i).Interface()
+						switch vvv := vv.(type) {
+						case map[string]any:
+							flatten(vvv, key+fmt.Sprintf("[%d]", i))
+						default:
+							output[key+fmt.Sprintf("[%d]", i)] = vvv
+						}
+					}
+				} else {
+					output[key] = value
+				}
+			}
+		}
+	}
+
+	flatten(o, "")
+
+	return output
+}
+
+type FieldDiff struct {
+	Old any `json:"old" bson:"old"`
+	New any `json:"new" bson:"new"`
+}
+type ObjectDiff struct {
+	Same     bool                 `json:"same"               bson:"same"`
+	Added    Object               `json:"added,omitempty"    bson:"added,omitempty"`
+	Modified map[string]FieldDiff `json:"modified,omitempty" bson:"modified,omitempty"`
+	Deleted  Object               `json:"deleted,omitempty"  bson:"deleted,omitempty"`
+}
+
+func diffMaps(oldMap, newMap map[string]any) ObjectDiff {
+	result := ObjectDiff{
+		Added:    Object{},
+		Modified: make(map[string]FieldDiff),
+		Deleted:  Object{},
+	}
+
+	// Check for added and modified key-value pairs
+	for key, newValue := range newMap {
+		if oldValue, exists := oldMap[key]; exists {
+			if !reflect.DeepEqual(oldValue, newValue) {
+				result.Modified[key] = FieldDiff{Old: oldValue, New: newValue}
+			}
+		} else {
+			result.Added[key] = newValue
+		}
+	}
+
+	// Check for deleted key-value pairs
+	for key, oldValue := range oldMap {
+		if _, exists := newMap[key]; !exists {
+			result.Deleted[key] = oldValue
+		}
+	}
+	if len(result.Added) == 0 {
+		result.Added = nil
+	}
+	if len(result.Deleted) == 0 {
+		result.Deleted = nil
+	}
+	if len(result.Modified) == 0 {
+		result.Modified = nil
+	}
+
+	return result
+}
+
+func (o Object) Diff(other Object) ObjectDiff {
+	origf := o.Flatten("/")
+	otherf := other.Flatten("/")
+
+	diff := diffMaps(origf, otherf)
+	if diff.Added == nil && diff.Modified == nil && diff.Deleted == nil {
+		diff.Same = true
+	} else {
+		diff.Same = false
+	}
+
+	return diff
 }
