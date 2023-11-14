@@ -1,15 +1,13 @@
 package tox
 
 import (
+	"dario.cat/mergo"
 	"fmt"
 	"github.com/goccy/go-json"
 	"math"
 	"reflect"
 	"strings"
 	"time"
-	"unicode"
-
-	"dario.cat/mergo"
 )
 
 type Object map[string]any
@@ -20,7 +18,7 @@ func NewObject(mi any) Object {
 	}
 	switch mt := mi.(type) {
 	case map[string]any:
-		return Object(mt)
+		return mt
 	case []byte:
 		var obj Object
 		_ = json.Unmarshal(mt, &obj)
@@ -30,15 +28,19 @@ func NewObject(mi any) Object {
 		_ = json.Unmarshal([]byte(mt), &obj)
 		return obj
 	default:
-		b, err := json.Marshal(mt)
-		if err == nil {
-			var obj Object
-			_ = json.Unmarshal(b, &obj)
-			return obj
+		mit := reflect.TypeOf(mi)
+		if mit.Kind() == reflect.Struct || (mit.Kind() == reflect.Ptr && mit.Elem().Kind() == reflect.Struct) {
+			return structToObject(mi).(Object)
+		} else {
+			b, err := json.Marshal(mt)
+			if err == nil {
+				var obj Object
+				_ = json.Unmarshal(b, &obj)
+				return obj
+			}
 		}
 		return nil
 	}
-	return nil
 }
 
 func (o Object) Clone() Object {
@@ -405,20 +407,9 @@ func (o Object) Unmarshal(field string, raw any) {
 	case []map[string]any:
 		o[field] = v
 	default:
-		o[field] = v
+		o[field] = structToObject(v)
 	}
 
-}
-
-func isASCII(s []byte) bool {
-	for i := 0; i < len(s); i++ {
-		if s[i] > unicode.MaxASCII {
-			return false
-		} else if s[i] < 0x20 && s[i] != 0x09 && s[i] != 0x0A && s[i] != 0x0D {
-			return false
-		}
-	}
-	return true
 }
 
 const (
@@ -534,41 +525,24 @@ type ObjectDiff struct {
 	Deleted  Object               `json:"deleted,omitempty"  bson:"deleted,omitempty"`
 }
 
-func diffMaps(oldMap, newMap map[string]any) ObjectDiff {
-	result := ObjectDiff{
-		Added:    Object{},
-		Modified: make(map[string]FieldDiff),
-		Deleted:  Object{},
+func (o Object) JsonString(pretty bool) string {
+	if pretty {
+		b, _ := json.MarshalIndent(o, "", "  ")
+		return string(b)
+	} else {
+		b, _ := json.Marshal(o)
+		return string(b)
 	}
+}
 
-	// Check for added and modified key-value pairs
-	for key, newValue := range newMap {
-		if oldValue, exists := oldMap[key]; exists {
-			if !reflect.DeepEqual(oldValue, newValue) {
-				result.Modified[key] = FieldDiff{Old: oldValue, New: newValue}
-			}
-		} else {
-			result.Added[key] = newValue
-		}
+func (o Object) JsonBytes(pretty bool) []byte {
+	if pretty {
+		b, _ := json.MarshalIndent(o, "", "  ")
+		return b
+	} else {
+		b, _ := json.Marshal(o)
+		return b
 	}
-
-	// Check for deleted key-value pairs
-	for key, oldValue := range oldMap {
-		if _, exists := newMap[key]; !exists {
-			result.Deleted[key] = oldValue
-		}
-	}
-	if len(result.Added) == 0 {
-		result.Added = nil
-	}
-	if len(result.Deleted) == 0 {
-		result.Deleted = nil
-	}
-	if len(result.Modified) == 0 {
-		result.Modified = nil
-	}
-
-	return result
 }
 
 func (o Object) Diff(other Object) ObjectDiff {
@@ -583,4 +557,34 @@ func (o Object) Diff(other Object) ObjectDiff {
 	}
 
 	return diff
+}
+
+func (o Object) RemoveNaN() {
+	toBeDeleted := []string{}
+	o.convertStructs()
+	removeNaN(o, "", &toBeDeleted)
+	if len(toBeDeleted) > 0 {
+		for _, key := range toBeDeleted {
+			o.Delete(key)
+		}
+	}
+}
+
+func (o Object) convertStructs() {
+	for k, v := range o {
+		if v != nil {
+			if reflect.TypeOf(v).Kind() == reflect.Struct {
+				o[k] = structToObject(v)
+			} else if reflect.TypeOf(v).Kind() == reflect.Ptr && reflect.TypeOf(v).Elem().Kind() == reflect.Struct {
+				o[k] = structToObject(v)
+			} else if reflect.TypeOf(v).Kind() == reflect.Map {
+				switch vv := v.(type) {
+				case Object:
+					vv.convertStructs()
+				case map[string]any:
+					Object(vv).convertStructs()
+				}
+			}
+		}
+	}
 }

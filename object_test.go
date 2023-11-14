@@ -1,6 +1,7 @@
 package tox
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -21,7 +22,7 @@ func (s *ReportSuite) SetupSuite() {
 func (s *ReportSuite) TestSimpleFlatten() {
 
 	o := Object{"a": "abc", "b": 456, "c": Object{"d": 123, "e": Object{"f": 456}}}
-	s.Equal(Object{"a": "abc", "b": 456, "c.d": 123, "c.e.f": 456}, o.Flatten(""))
+	s.Equal(Object{"a": "abc", "b": 456, "c.d": 123, "c.e.f": 456}, o.Flatten("."))
 }
 
 func (s *ReportSuite) TestArrayFlatten() {
@@ -44,4 +45,23 @@ func (s *ReportSuite) TestDiff() {
 	new2 := Object{"a": "abc", "c": Object{"d": 555, "e": Object{"f": 456, "g": 789}}}
 
 	s.Equal(ObjectDiff{Added: Object{"c/e/g": 789}, Deleted: Object{"b": 456}, Modified: map[string]FieldDiff{"c/d": {Old: 123, New: 555}}}, old.Diff(new2))
+}
+
+type Foo struct {
+	A string  `json:"a,omitempty"`
+	B float64 `json:"b,omitempty"`
+}
+
+func (s *ReportSuite) TestNaN() {
+	old := Object{"a": "abc", "b": math.NaN(), "c": Object{"d": 123, "e": math.NaN()}}
+	old.RemoveNaN()
+	s.Equal("{\"a\":\"abc\",\"c\":{\"d\":123}}", old.JsonString(false))
+
+	old = Object{"a": "abc", "b": math.NaN(), "c": &Foo{A: "abc", B: math.NaN()}}
+	old.RemoveNaN()
+	s.Equal("{\"a\":\"abc\",\"c\":{\"a\":\"abc\"}}", old.JsonString(false))
+
+	old = Object{"a": "abc", "b": math.NaN(), "c": Object{"d": &Foo{A: "abc", B: math.NaN()}}}
+	old.RemoveNaN()
+	s.Equal("{\"a\":\"abc\",\"c\":{\"d\":{\"a\":\"abc\"}}}", old.JsonString(false))
 }
