@@ -18,6 +18,10 @@ func NewObject(mi any) Object {
 	}
 	switch mt := mi.(type) {
 	case map[string]any:
+		Object(mt).ConvertStructs()
+		return mt
+	case Object:
+		mt.ConvertStructs()
 		return mt
 	case []byte:
 		var obj Object
@@ -561,7 +565,7 @@ func (o Object) Diff(other Object) ObjectDiff {
 
 func (o Object) RemoveNaN() {
 	toBeDeleted := []string{}
-	o.convertStructs()
+	o.ConvertStructs()
 	removeNaN(o, "", &toBeDeleted)
 	if len(toBeDeleted) > 0 {
 		for _, key := range toBeDeleted {
@@ -570,7 +574,7 @@ func (o Object) RemoveNaN() {
 	}
 }
 
-func (o Object) convertStructs() {
+func (o Object) ConvertStructs() {
 	for k, v := range o {
 		if v != nil {
 			if reflect.TypeOf(v).Kind() == reflect.Struct {
@@ -580,9 +584,9 @@ func (o Object) convertStructs() {
 			} else if reflect.TypeOf(v).Kind() == reflect.Map {
 				switch vv := v.(type) {
 				case Object:
-					vv.convertStructs()
+					vv.ConvertStructs()
 				case map[string]any:
-					Object(vv).convertStructs()
+					Object(vv).ConvertStructs()
 				}
 			}
 		}

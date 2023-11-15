@@ -52,6 +52,12 @@ type Foo struct {
 	B float64 `json:"b,omitempty"`
 }
 
+type FooUnexported struct {
+	A string `json:"a,omitempty"`
+	b float64
+	C Foo `json:"c,omitempty"`
+}
+
 func (s *ReportSuite) TestNaN() {
 	old := Object{"a": "abc", "b": math.NaN(), "c": Object{"d": 123, "e": math.NaN()}}
 	old.RemoveNaN()
@@ -64,4 +70,26 @@ func (s *ReportSuite) TestNaN() {
 	old = Object{"a": "abc", "b": math.NaN(), "c": Object{"d": &Foo{A: "abc", B: math.NaN()}}}
 	old.RemoveNaN()
 	s.Equal("{\"a\":\"abc\",\"c\":{\"d\":{\"a\":\"abc\"}}}", old.JsonString(false))
+}
+
+func (s *ReportSuite) TestStructs() {
+	old := NewObject(map[string]interface{}{"a": "abc", "b": 123})
+	old.Set("c", Foo{A: "abc", B: 456})
+	s.Equal("{\"a\":\"abc\",\"b\":123,\"c\":{\"a\":\"abc\",\"b\":456}}", old.JsonString(false))
+
+	old = NewObject(map[string]interface{}{"a": "abc", "b": 123})
+	old.Set("c", FooUnexported{A: "abc", b: 456})
+	s.Equal("{\"a\":\"abc\",\"b\":123,\"c\":{\"a\":\"abc\",\"c\":{}}}", old.JsonString(false))
+
+	old = Object{"a": "abc", "b": 123, "c": FooUnexported{A: "abc", b: 456}}
+	s.Equal("{\"a\":\"abc\",\"b\":123,\"c\":{\"a\":\"abc\",\"c\":{}}}", old.JsonString(false))
+
+	old = Object{"a": "abc", "b": 123, "c": &FooUnexported{A: "abc", b: 456}}
+	s.Equal("{\"a\":\"abc\",\"b\":123,\"c\":{\"a\":\"abc\",\"c\":{}}}", old.JsonString(false))
+
+	old = Object{"a": "abc", "b": 123, "c": &FooUnexported{A: "abc", b: 456, C: Foo{}}}
+	s.Equal("{\"a\":\"abc\",\"b\":123,\"c\":{\"a\":\"abc\",\"c\":{}}}", old.JsonString(false))
+
+	old = Object{"a": "abc", "b": 123, "c": &FooUnexported{A: "abc", b: 456, C: Foo{A: "abc", B: 456}}}
+	s.Equal("{\"a\":\"abc\",\"b\":123,\"c\":{\"a\":\"abc\",\"c\":{\"a\":\"abc\",\"b\":456}}}", old.JsonString(false))
 }

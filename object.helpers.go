@@ -30,7 +30,9 @@ func structToObject(input any) any {
 				ss := strings.Split(jt, ",")
 				fieldName = ss[0]
 			}
-			result[fieldName] = structToObject(field.Interface())
+			if !unicode.IsLower(rune(fieldName[0])) {
+				result[fieldName] = structToObject(field.Interface())
+			}
 		}
 		return result
 	} else if structValue.Kind() == reflect.Ptr && structValue.Elem().Kind() == reflect.Struct {
