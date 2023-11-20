@@ -575,20 +575,7 @@ func (o Object) RemoveNaN() {
 }
 
 func (o Object) ConvertStructs() {
-	for k, v := range o {
-		if v != nil {
-			if reflect.TypeOf(v).Kind() == reflect.Struct {
-				o[k] = structToObject(v)
-			} else if reflect.TypeOf(v).Kind() == reflect.Ptr && reflect.TypeOf(v).Elem().Kind() == reflect.Struct {
-				o[k] = structToObject(v)
-			} else if reflect.TypeOf(v).Kind() == reflect.Map {
-				switch vv := v.(type) {
-				case Object:
-					vv.ConvertStructs()
-				case map[string]any:
-					Object(vv).ConvertStructs()
-				}
-			}
-		}
-	}
+	b, _ := json.Marshal(o)
+	o = Object{}
+	_ = json.Unmarshal(b, &o)
 }

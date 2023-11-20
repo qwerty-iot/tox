@@ -63,10 +63,12 @@ func removeNaN(a any, parent string, toBeDeleted *[]string) {
 				v.Index(i).Set(reflect.ValueOf(float64(0.0)))
 			}
 		}
-	case reflect.Struct:
-		panic("no structs allowed in removeNaN")
-	case reflect.Ptr:
-		panic("no struct pointers allowed in removeNaN")
+
+		//case reflect.Struct:
+		//	spew.Dump("struct", v.Interface())
+		//	panic("no structs allowed in removeNaN")
+		//case reflect.Ptr:
+		//	panic("no struct pointers allowed in removeNaN")
 	}
 }
 

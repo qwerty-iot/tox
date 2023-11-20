@@ -3,6 +3,7 @@ package tox
 import (
 	"math"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -91,5 +92,9 @@ func (s *ReportSuite) TestStructs() {
 	s.Equal("{\"a\":\"abc\",\"b\":123,\"c\":{\"a\":\"abc\",\"c\":{}}}", old.JsonString(false))
 
 	old = Object{"a": "abc", "b": 123, "c": &FooUnexported{A: "abc", b: 456, C: Foo{A: "abc", B: 456}}}
+	s.Equal("{\"a\":\"abc\",\"b\":123,\"c\":{\"a\":\"abc\",\"c\":{\"a\":\"abc\",\"b\":456}}}", old.JsonString(false))
+
+	old = Object{"a": "abc", "b": time.Now()}
+	old.RemoveNaN()
 	s.Equal("{\"a\":\"abc\",\"b\":123,\"c\":{\"a\":\"abc\",\"c\":{\"a\":\"abc\",\"b\":456}}}", old.JsonString(false))
 }
