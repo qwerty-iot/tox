@@ -32,18 +32,7 @@ func NewObject(mi any) Object {
 		_ = json.Unmarshal([]byte(mt), &obj)
 		return obj
 	default:
-		mit := reflect.TypeOf(mi)
-		if mit.Kind() == reflect.Struct || (mit.Kind() == reflect.Ptr && mit.Elem().Kind() == reflect.Struct) {
-			return structToObject(mi).(Object)
-		} else {
-			b, err := json.Marshal(mt)
-			if err == nil {
-				var obj Object
-				_ = json.Unmarshal(b, &obj)
-				return obj
-			}
-		}
-		return nil
+		return structToObject(mi)
 	}
 }
 

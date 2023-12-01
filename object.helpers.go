@@ -1,9 +1,9 @@
 package tox
 
 import (
+	"github.com/goccy/go-json"
 	"math"
 	"reflect"
-	"strings"
 	"unicode"
 )
 
@@ -18,6 +18,18 @@ func isASCII(s []byte) bool {
 	return true
 }
 
+func structToObject(input any) Object {
+	b, err := json.Marshal(input)
+	if err == nil {
+		var obj Object
+		_ = json.Unmarshal(b, &obj)
+		return obj
+	}
+	return nil
+}
+
+/*
+future implementation
 func structToObject(input any) any {
 	structValue := reflect.ValueOf(input)
 	if structValue.Kind() == reflect.Struct {
@@ -40,6 +52,7 @@ func structToObject(input any) any {
 	}
 	return input
 }
+*/
 
 func removeNaN(a any, parent string, toBeDeleted *[]string) {
 	if len(parent) != 0 {
