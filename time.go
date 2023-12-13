@@ -1,6 +1,9 @@
 package tox
 
-import "time"
+import (
+	"reflect"
+	"time"
+)
 
 // ToTime converts data types to time.Time structures.  'int' or 'int64' are treated as unix time, strings are treated
 // as RFC3330Nano timestamps.  If the conversion fails, an empty time.Time{} is returned.
@@ -19,6 +22,10 @@ func ToTime(v interface{}) time.Time {
 		}
 		return t
 	default:
+		if reflect.TypeOf(v).Kind() == reflect.Int64 && reflect.TypeOf(v).Name() == "DateTime" {
+			// special case for mongodb primitive.DateTime
+			return time.Unix(reflect.ValueOf(v).Int()/1000, 0)
+		}
 		return time.Time{}
 	}
 }

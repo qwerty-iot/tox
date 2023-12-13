@@ -43,6 +43,8 @@ func ToStringOpts(v interface{}, options *Options) string {
 		return fmt.Sprintf("%v", v)
 	case time.Duration:
 		return ToPrettyDuration(v, FormatShort)
+	case time.Time:
+		return v.Format(time.RFC3339Nano)
 	case []byte:
 		if utf8.Valid(v) {
 			return string(v)
@@ -57,6 +59,12 @@ func ToStringOpts(v interface{}, options *Options) string {
 			return string(b)
 		}
 	default:
+		switch reflect.TypeOf(v).Name() {
+		case "DateTime":
+			if reflect.TypeOf(v).Kind() == reflect.Int64 {
+				return time.Unix(reflect.ValueOf(v).Int()/1000, 0).Format(time.RFC3339Nano)
+			}
+		}
 		b, err := json.Marshal(v)
 		if err != nil {
 			return fmt.Sprintf("%v", v)
