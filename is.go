@@ -1,6 +1,7 @@
 package tox
 
 import (
+	"reflect"
 	"strconv"
 )
 
@@ -28,6 +29,16 @@ func IsString(i any) bool {
 	case string:
 		return true
 	default:
+		return false
+	}
+}
+
+func IsArray(i any) bool {
+	if reflect.TypeOf(i).Kind() == reflect.Array || reflect.TypeOf(i).Kind() == reflect.Slice {
+		return true
+	} else if reflect.TypeOf(i).Kind() == reflect.Ptr && (reflect.TypeOf(i).Elem().Kind() == reflect.Array || reflect.TypeOf(i).Elem().Kind() == reflect.Slice) {
+		return true
+	} else {
 		return false
 	}
 }
