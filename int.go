@@ -1,6 +1,9 @@
 package tox
 
-import "strconv"
+import (
+	"reflect"
+	"strconv"
+)
 
 // ToInt converts any data type to a bool, if the conversion fails, it returns 0.
 func ToInt(v interface{}) int {
@@ -48,4 +51,37 @@ func ToIntPtr(v interface{}) *int {
 	}
 	ret := ToInt(v)
 	return &ret
+}
+
+func ToIntArray(v interface{}) []int {
+	switch v := v.(type) {
+	case nil:
+		return nil
+	case int:
+		return []int{v}
+	case []int:
+		return v
+	case []byte:
+		var ret = make([]int, len(v))
+		for ii, vv := range v {
+			ret[ii] = int(vv)
+		}
+		return ret
+	case []any:
+		var ret = make([]int, len(v))
+		for ii, vv := range v {
+			ret[ii] = ToInt(vv)
+		}
+		return ret
+	default:
+		aVal := reflect.ValueOf(v)
+		if aVal.Kind() == reflect.Array || aVal.Kind() == reflect.Slice {
+			var ret = make([]int, aVal.Len())
+			for i := 0; i < aVal.Len(); i++ {
+				ret[i] = ToInt(aVal.Index(i).Interface())
+			}
+			return ret
+		}
+		return nil
+	}
 }
