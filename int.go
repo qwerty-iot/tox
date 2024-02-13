@@ -81,6 +81,8 @@ func ToIntArray(v interface{}) []int {
 				ret[i] = ToInt(aVal.Index(i).Interface())
 			}
 			return ret
+		} else {
+			return []int{ToInt(v)}
 		}
 		return nil
 	}
