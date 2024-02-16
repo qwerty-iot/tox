@@ -140,8 +140,10 @@ func (o Object) Get(key string) any {
 						mi = pi
 					} else if pi, ok := p.(Object); ok && partIdx != len(parts)-1 {
 						mi = pi
-					} else {
+					} else if partIdx == len(parts)-1 {
 						return p
+					} else {
+						return nil
 					}
 				} else {
 					switch pa := p.(type) {
