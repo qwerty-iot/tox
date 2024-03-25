@@ -37,11 +37,19 @@ func NewObject(mi any) Object {
 }
 
 func (o Object) Clone() Object {
+	if o == nil {
+		return nil
+	}
 	no, _ := Deepcopy(o)
 	return no
 }
 
 func (o Object) Equals(other Object) bool {
+	if (o == nil && other != nil) || (o != nil && other == nil) {
+		return false
+	} else if o == nil && other == nil {
+		return true
+	}
 	if fmt.Sprintf("%v", o) == fmt.Sprintf("%v", other) {
 		return true
 	}
@@ -66,6 +74,9 @@ func countFields(x any) int {
 }
 
 func (o Object) FieldCount() int {
+	if o == nil {
+		return 0
+	}
 	return countFields(o)
 }
 
@@ -88,6 +99,9 @@ func keyIndex(key string) (string, int) {
 }
 
 func (o Object) Move(from string, to string) {
+	if o == nil {
+		return
+	}
 	if from == to {
 		return
 	}
@@ -99,6 +113,9 @@ func (o Object) Move(from string, to string) {
 }
 
 func (o Object) Delete(key string) {
+	if o == nil {
+		return
+	}
 	idx := strings.LastIndex(key, ".")
 	if idx == -1 {
 		delete(o, key)
@@ -111,6 +128,9 @@ func (o Object) Delete(key string) {
 }
 
 func (o Object) Get(key string) any {
+	if o == nil {
+		return nil
+	}
 	parts := strings.Split(key, ".")
 	if len(parts) == 1 {
 		k, i := keyIndex(key)
@@ -214,6 +234,9 @@ func (o Object) Get(key string) any {
 }
 
 func (o Object) GetObjectArray(key string) []Object {
+	if o == nil {
+		return nil
+	}
 	if field := o.Get(key); field != nil {
 		fieldVal := reflect.ValueOf(field)
 		if fieldVal.Kind() == reflect.Array || fieldVal.Kind() == reflect.Slice {
@@ -230,6 +253,9 @@ func (o Object) GetObjectArray(key string) []Object {
 }
 
 func (o Object) GetObject(key string) Object {
+	if o == nil {
+		return nil
+	}
 	if field := o.Get(key); field != nil {
 		switch typed := field.(type) {
 		case map[string]any:
@@ -245,6 +271,9 @@ func (o Object) GetObject(key string) Object {
 }
 
 func (o Object) GetString(key string, def string) string {
+	if o == nil {
+		return def
+	}
 	if field := o.Get(key); field != nil {
 		return ToString(field)
 	} else {
@@ -253,6 +282,9 @@ func (o Object) GetString(key string, def string) string {
 }
 
 func (o Object) GetStringArray(key string, def []string) []string {
+	if o == nil {
+		return def
+	}
 	if field := o.Get(key); field != nil {
 		return ToStringArray(field)
 	} else {
@@ -261,6 +293,9 @@ func (o Object) GetStringArray(key string, def []string) []string {
 }
 
 func (o Object) GetInt(key string, def int) int {
+	if o == nil {
+		return def
+	}
 	if field := o.Get(key); field != nil {
 		return ToInt(field)
 	} else {
@@ -269,6 +304,9 @@ func (o Object) GetInt(key string, def int) int {
 }
 
 func (o Object) GetIntPtr(key string, def int) *int {
+	if o == nil {
+		return ToIntPtr(def)
+	}
 	if field := o.Get(key); field != nil {
 		return ToIntPtr(field)
 	} else {
@@ -280,6 +318,9 @@ func (o Object) GetIntPtr(key string, def int) *int {
 }
 
 func (o Object) GetFloat64(key string, def float64) float64 {
+	if o == nil {
+		return def
+	}
 	if field := o.Get(key); field != nil {
 		return ToFloat64(field)
 	} else {
@@ -288,6 +329,9 @@ func (o Object) GetFloat64(key string, def float64) float64 {
 }
 
 func (o Object) GetFloat64Ptr(key string, def float64) *float64 {
+	if o == nil {
+		return ToFloat64Ptr(def)
+	}
 	if field := o.Get(key); field != nil {
 		return ToFloat64Ptr(field)
 	} else {
@@ -299,6 +343,9 @@ func (o Object) GetFloat64Ptr(key string, def float64) *float64 {
 }
 
 func (o Object) GetBool(key string, def bool) bool {
+	if o == nil {
+		return def
+	}
 	if field := o.Get(key); field != nil {
 		return ToBool(field)
 	} else {
@@ -307,6 +354,9 @@ func (o Object) GetBool(key string, def bool) bool {
 }
 
 func (o Object) GetBoolPtr(key string, def bool) *bool {
+	if o == nil {
+		return ToBoolPtr(def)
+	}
 	if field := o.Get(key); field != nil {
 		return ToBoolPtr(field)
 	} else {
@@ -315,6 +365,9 @@ func (o Object) GetBoolPtr(key string, def bool) *bool {
 }
 
 func (o Object) GetTime(key string, def time.Time) time.Time {
+	if o == nil {
+		return def
+	}
 	if field := o.Get(key); field != nil {
 		return ToTime(field)
 	} else {
@@ -323,6 +376,9 @@ func (o Object) GetTime(key string, def time.Time) time.Time {
 }
 
 func (o Object) GetTimePtr(key string, def time.Time) *time.Time {
+	if o == nil {
+		return ToTimePtr(def)
+	}
 	if field := o.Get(key); field != nil {
 		return ToTimePtr(field)
 	} else {
@@ -334,6 +390,9 @@ func (o Object) GetTimePtr(key string, def time.Time) *time.Time {
 }
 
 func (o Object) GetBytes(key string, def []byte) []byte {
+	if o == nil {
+		return def
+	}
 	if field := o.Get(key); field != nil {
 		switch typed := field.(type) {
 		case []byte:
@@ -349,6 +408,9 @@ func (o Object) GetBytes(key string, def []byte) []byte {
 }
 
 func (o Object) Unmarshal(field string, raw any) {
+	if o == nil {
+		return
+	}
 	var parsed bool
 	switch v := raw.(type) {
 	case []byte:
@@ -413,12 +475,18 @@ const (
 )
 
 func (o Object) SetNullIfNotExist(key string) {
+	if o == nil {
+		return
+	}
 	if o.Get(key) == nil {
 		o.Set(key, Null)
 	}
 }
 
 func (o Object) SetIfNotExist(key string, value any) {
+	if o == nil {
+		return
+	}
 	if o.Get(key) == nil {
 		o.Set(key, value)
 	}
@@ -521,6 +589,9 @@ type ObjectDiff struct {
 }
 
 func (o Object) JsonString(pretty bool) string {
+	if o == nil {
+		return ""
+	}
 	if pretty {
 		b, _ := json.MarshalIndent(o, "", "  ")
 		return string(b)
@@ -531,6 +602,9 @@ func (o Object) JsonString(pretty bool) string {
 }
 
 func (o Object) JsonBytes(pretty bool) []byte {
+	if o == nil {
+		return nil
+	}
 	if pretty {
 		b, _ := json.MarshalIndent(o, "", "  ")
 		return b
@@ -541,6 +615,11 @@ func (o Object) JsonBytes(pretty bool) []byte {
 }
 
 func (o Object) Diff(other Object) ObjectDiff {
+	if o == nil && other == nil {
+		return ObjectDiff{Same: true}
+	} else if o == nil || other == nil {
+		return ObjectDiff{Same: false}
+	}
 	origf := o.Flatten("/")
 	otherf := other.Flatten("/")
 
@@ -555,6 +634,9 @@ func (o Object) Diff(other Object) ObjectDiff {
 }
 
 func (o Object) RemoveNaN() {
+	if o == nil {
+		return
+	}
 	toBeDeleted := []string{}
 	o.ConvertStructs()
 	removeNaN(o, "", &toBeDeleted)
@@ -566,7 +648,9 @@ func (o Object) RemoveNaN() {
 }
 
 func (o Object) ConvertStructs() {
+	if o == nil {
+		return
+	}
 	b, _ := json.Marshal(o)
-	o = Object{}
 	_ = json.Unmarshal(b, &o)
 }
