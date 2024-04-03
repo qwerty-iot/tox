@@ -407,6 +407,19 @@ func (o Object) GetBytes(key string, def []byte) []byte {
 	}
 }
 
+func (o Object) GetInto(key string, ret any) any {
+	if o == nil {
+		return ret
+	}
+	if field := o.Get(key); field != nil {
+		b, _ := json.Marshal(field)
+		_ = json.Unmarshal(b, ret)
+		return ret
+	} else {
+		return ret
+	}
+}
+
 func (o Object) Unmarshal(field string, raw any) {
 	if o == nil {
 		return
