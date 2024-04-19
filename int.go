@@ -84,6 +84,5 @@ func ToIntArray(v interface{}) []int {
 		} else {
 			return []int{ToInt(v)}
 		}
-		return nil
 	}
 }

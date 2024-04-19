@@ -47,7 +47,7 @@ func (o Object) Clone() Object {
 func (o Object) Equals(other Object) bool {
 	if (o == nil && other != nil) || (o != nil && other == nil) {
 		return false
-	} else if o == nil && other == nil {
+	} else if o == nil {
 		return true
 	}
 	if fmt.Sprintf("%v", o) == fmt.Sprintf("%v", other) {

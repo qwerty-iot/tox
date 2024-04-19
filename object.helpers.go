@@ -82,6 +82,8 @@ func removeNaN(a any, parent string, toBeDeleted *[]string) {
 		//	panic("no structs allowed in removeNaN")
 		//case reflect.Ptr:
 		//	panic("no struct pointers allowed in removeNaN")
+	default:
+		// do nothing
 	}
 }
 
