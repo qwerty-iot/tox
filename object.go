@@ -547,7 +547,7 @@ func (o Object) Set(key string, value any) {
 }
 
 func (o Object) Merge(other Object) {
-	_ = mergo.Merge(&o, other)
+	_ = mergo.Merge(&o, other, mergo.WithOverride)
 }
 
 func (o Object) Flatten(delim string) Object {
