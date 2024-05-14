@@ -549,6 +549,9 @@ func (o Object) Set(key string, value any) {
 func (o Object) Merge(other Object) {
 	_ = mergo.Merge(&o, other, mergo.WithOverride)
 }
+func (o Object) MergeMissing(other Object) {
+	_ = mergo.Merge(&o, other)
+}
 
 func (o Object) Flatten(delim string) Object {
 	output := make(map[string]any)
