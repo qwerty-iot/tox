@@ -18,11 +18,14 @@ func NewObject(mi any) Object {
 	}
 	switch mt := mi.(type) {
 	case map[string]any:
-		Object(mt).ConvertStructs()
-		return mt
+		o := Object(mt)
+		o = o.Clone()
+		o.ConvertStructs()
+		return o
 	case Object:
-		mt.ConvertStructs()
-		return mt
+		no := mt.Clone()
+		no.ConvertStructs()
+		return no
 	case []byte:
 		var obj Object
 		_ = json.Unmarshal(mt, &obj)
@@ -42,6 +45,11 @@ func (o Object) Clone() Object {
 	}
 	no, _ := Deepcopy(o)
 	return no
+}
+
+func (o Object) ToStruct(target any) {
+	b, _ := json.Marshal(o)
+	_ = json.Unmarshal(b, target)
 }
 
 func (o Object) Equals(other Object) bool {
@@ -125,6 +133,16 @@ func (o Object) Delete(key string) {
 			delete(parent, key[idx+1:])
 		}
 	}
+}
+
+func (o Object) Exists(key string) bool {
+	if o == nil {
+		return false
+	}
+	if o.Get(key) != nil {
+		return true
+	}
+	return false
 }
 
 func (o Object) Get(key string) any {

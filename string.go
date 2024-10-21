@@ -240,3 +240,21 @@ func CapitalizeString(s string) string {
 
 	return result
 }
+
+func StringInArray(s string, arr []string, ignoreCase bool) bool {
+	if arr == nil {
+		return false
+	}
+	for _, v := range arr {
+		if ignoreCase {
+			if strings.EqualFold(v, s) {
+				return true
+			}
+		} else {
+			if v == s {
+				return true
+			}
+		}
+	}
+	return false
+}

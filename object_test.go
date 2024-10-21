@@ -1,6 +1,7 @@
 package tox
 
 import (
+	"github.com/davecgh/go-spew/spew"
 	"math"
 	"testing"
 	"time"
@@ -71,6 +72,14 @@ func (s *ReportSuite) TestNaN() {
 	old = Object{"a": "abc", "b": math.NaN(), "c": Object{"d": &Foo{A: "abc", B: math.NaN()}}}
 	old.RemoveNaN()
 	s.Equal("{\"a\":\"abc\",\"c\":{\"d\":{\"a\":\"abc\"}}}", old.JsonString(false))
+}
+
+func (s *ReportSuite) TestBinary() {
+	old := Object{"a": "abc", "b": []byte{0x01, 0x02, 0x03, 0x04}}
+	n := NewObject(map[string]any{"a": "abc", "b": []byte{0x01, 0x02, 0x03, 0x04}})
+	n.Equals(old)
+	spew.Dump(old, n)
+	s.Equal(true, n.Equals(old))
 }
 
 func (s *ReportSuite) TestStructs() {
