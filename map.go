@@ -45,13 +45,15 @@ func ToMapStringInterface(v interface{}) map[string]interface{} {
 	}
 }
 
-func MapKeysToArray(m any) []any {
+func MapKeysToArray[T any](m any) []T {
 	val := reflect.ValueOf(m)
 	if val.Kind() == reflect.Map && val.Len() > 0 {
-		ret := make([]any, val.Len())
+		ret := make([]T, val.Len())
 		keys := val.MapKeys()
 		for idx, key := range keys {
-			ret[idx] = key.Interface()
+			if k, ok := key.Interface().(T); ok {
+				ret[idx] = k
+			}
 		}
 		return ret
 	} else {
