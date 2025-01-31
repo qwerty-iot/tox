@@ -3,6 +3,7 @@ package tox
 import (
 	"reflect"
 	"strconv"
+	"unicode"
 )
 
 func IsNumber(i any) bool {
@@ -23,8 +24,13 @@ func IsNumber(i any) bool {
 }
 
 func IsString(i any) bool {
-	switch i.(type) {
+	switch v := i.(type) {
 	case []byte:
+		for _, b := range string(v) {
+			if !unicode.IsPrint(b) {
+				return false
+			}
+		}
 		return true
 	case string:
 		return true
