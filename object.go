@@ -135,6 +135,29 @@ func (o Object) Delete(key string) {
 	}
 }
 
+func (o Object) DeletePrefix(prefix string) {
+	if o == nil {
+		return
+	}
+	idx := strings.LastIndex(prefix, ".")
+	if idx == -1 {
+		for k := range o {
+			if strings.HasPrefix(k, prefix) {
+				delete(o, k)
+			}
+		}
+	} else {
+		parent := o.GetObject(prefix[:idx])
+		if parent != nil {
+			for k := range parent {
+				if strings.HasPrefix(k, prefix) {
+					delete(o, k)
+				}
+			}
+		}
+	}
+}
+
 func (o Object) Exists(key string) bool {
 	if o == nil {
 		return false
