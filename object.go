@@ -344,6 +344,20 @@ func (o Object) GetInt(key string, def int) int {
 	}
 }
 
+func (o Object) ModifyInt(key string, delta int) int {
+	if o == nil {
+		return delta
+	}
+	if field := o.Get(key); field != nil {
+		v := ToInt(field) + delta
+		o.Set(key, v)
+		return v
+	} else {
+		o.Set(key, delta)
+		return delta
+	}
+}
+
 func (o Object) GetIntPtr(key string, def int) *int {
 	if o == nil {
 		return ToIntPtr(def)
