@@ -7,11 +7,9 @@ import (
 	"unicode"
 )
 
-func isASCII(s []byte) bool {
-	for i := 0; i < len(s); i++ {
-		if s[i] > unicode.MaxASCII {
-			return false
-		} else if s[i] < 0x20 && s[i] != 0x09 && s[i] != 0x0A && s[i] != 0x0D {
+func isUnicode(s []byte) bool {
+	for _, r := range string(s) {
+		if !unicode.IsPrint(r) {
 			return false
 		}
 	}

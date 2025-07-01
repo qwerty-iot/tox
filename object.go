@@ -500,7 +500,7 @@ func (o Object) Unmarshal(field string, raw any) {
 			}
 		}
 		if !parsed {
-			if isASCII(v) {
+			if isUnicode(v) {
 				o[field] = string(v)
 			} else {
 				o[field] = raw
