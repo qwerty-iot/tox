@@ -261,7 +261,14 @@ func (o Object) Get(key string) any {
 						if partIdx == len(parts)-1 {
 							return pa[i]
 						}
-						return pa[i]
+						// Check if the array element is a map or Object and continue processing
+						if mapVal, ok := pa[i].(map[string]any); ok {
+							mi = mapVal
+						} else if objVal, ok := pa[i].(Object); ok {
+							mi = objVal
+						} else {
+							return pa[i]
+						}
 					default:
 						return nil
 					}
