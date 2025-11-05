@@ -4,6 +4,13 @@ import (
 	"strconv"
 )
 
+func IfBool[T any](v bool, ifTrue T, ifFalse T) T {
+	if v {
+		return ifTrue
+	}
+	return ifFalse
+}
+
 // ToBool converts any data type to a bool, if the conversion fails, it returns false.
 func ToBool(v interface{}) bool {
 	switch v := v.(type) {

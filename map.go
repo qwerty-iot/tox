@@ -1,8 +1,9 @@
 package tox
 
 import (
-	"github.com/goccy/go-json"
 	"reflect"
+
+	"github.com/goccy/go-json"
 )
 
 // ToMapStringString converts a generic map[string]interface{} to a map[string]string.
@@ -59,6 +60,14 @@ func MapKeysToArray[T any](m any) []T {
 	} else {
 		return nil
 	}
+}
+
+func ArrayToMapBool[T comparable](arr []T) map[T]bool {
+	ret := map[T]bool{}
+	for _, i := range arr {
+		ret[i] = true
+	}
+	return ret
 }
 
 func FlattenMap(m map[string]any, delim string) map[string]any {
