@@ -62,14 +62,6 @@ func MapKeysToArray[T any](m any) []T {
 	}
 }
 
-func ArrayToMapBool[T comparable](arr []T) map[T]bool {
-	ret := map[T]bool{}
-	for _, i := range arr {
-		ret[i] = true
-	}
-	return ret
-}
-
 func FlattenMap(m map[string]any, delim string) map[string]any {
 	output := make(map[string]any)
 
