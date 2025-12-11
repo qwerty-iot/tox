@@ -1,15 +1,31 @@
 package tox
 
 import (
+	"errors"
 	"fmt"
-	"github.com/goccy/go-json"
 	"math"
 	"reflect"
 	"strings"
 	"time"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/goccy/go-json"
 )
+
+func toStringMap(in map[any]any) map[string]any {
+	out := make(map[string]any, len(in))
+	for k, v := range in {
+		sk := ToString(k)
+		switch vv := v.(type) {
+		case map[any]any:
+			out[sk] = toStringMap(vv)
+		default:
+			out[sk] = v
+		}
+	}
+	return out
+}
 
 // ToString converts any data type to a string, it uses fmt.Sprintf() to convert unknown types.
 func ToString(v interface{}) string {
@@ -51,9 +67,21 @@ func ToStringOpts(v interface{}, options *Options) string {
 		} else {
 			return fmt.Sprintf("%v", v)
 		}
-	case map[string]interface{}:
+	case map[string]any:
 		b, err := json.Marshal(v)
 		if err != nil {
+			return fmt.Sprintf("%v", v)
+		} else {
+			return string(b)
+		}
+	case map[any]any:
+		b, err := json.Marshal(v)
+		if err != nil {
+			var typeErr *json.UnsupportedTypeError
+			if errors.As(err, &typeErr) {
+				fm := toStringMap(v)
+				return ToJson(fm)
+			}
 			return fmt.Sprintf("%v", v)
 		} else {
 			return string(b)

@@ -2,6 +2,8 @@ package tox
 
 import (
 	"reflect"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -36,4 +38,45 @@ func ToTimePtr(v interface{}) *time.Time {
 	}
 	ret := ToTime(v)
 	return &ret
+}
+
+func ParseDuration(s string) (time.Duration, error) {
+	s = strings.TrimSpace(strings.ToLower(s))
+	if s == "" {
+		return 0, strconv.ErrSyntax
+	}
+	// support suffixes: ms, s, m, h, d
+	// try ms explicitly
+	if strings.HasSuffix(s, "ms") {
+		v := strings.TrimSuffix(s, "ms")
+		n, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return 0, err
+		}
+		return time.Millisecond * time.Duration(n), nil
+	}
+	// single-char suffixes
+	unit := s[len(s)-1]
+	num := s[:len(s)-1]
+	n, err := strconv.ParseInt(num, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	switch unit {
+	case 's':
+		return time.Second * time.Duration(n), nil
+	case 'm':
+		return time.Minute * time.Duration(n), nil
+	case 'h':
+		return time.Hour * time.Duration(n), nil
+	case 'd':
+		return time.Hour * time.Duration(n*24), nil
+	default:
+		// if no recognized suffix, try to parse as plain milliseconds
+		n2, err2 := strconv.ParseInt(s, 10, 64)
+		if err2 != nil {
+			return 0, strconv.ErrSyntax
+		}
+		return time.Second * time.Duration(n2), nil
+	}
 }

@@ -1,13 +1,14 @@
 package tox
 
 import (
-	"dario.cat/mergo"
 	"fmt"
-	"github.com/goccy/go-json"
 	"math"
 	"reflect"
 	"strings"
 	"time"
+
+	"dario.cat/mergo"
+	"github.com/goccy/go-json"
 )
 
 type Object map[string]any
@@ -482,20 +483,22 @@ func (o Object) GetInto(key string, ret any) any {
 	}
 }
 
-func (o Object) Unmarshal(field string, raw any) {
+func (o Object) Unmarshal(field string, raw any) string {
 	if o == nil {
-		return
+		return "empty"
 	}
 	var parsed bool
+	retType := "empty"
 	switch v := raw.(type) {
 	case []byte:
 		if len(v) == 0 {
-			return
+			return "empty"
 		} else if v[0] == '{' {
 			var data Object
 			err := json.Unmarshal(v, &data)
 			if err == nil {
 				o[field] = data
+				retType = "object"
 				parsed = true
 			}
 		} else if v[0] == '[' {
@@ -503,25 +506,29 @@ func (o Object) Unmarshal(field string, raw any) {
 			err := json.Unmarshal(v, &data)
 			if err == nil {
 				o[field] = data
+				retType = "object"
 				parsed = true
 			}
 		}
 		if !parsed {
-			if isUnicode(v) {
+			if isASCII(v) {
 				o[field] = string(v)
+				retType = "string"
 			} else {
 				o[field] = raw
+				retType = "bytes"
 			}
 		}
 	case string:
 		if len(v) == 0 {
-			return
+			return "empty"
 		} else if v[0] == '{' {
 			var data Object
 			err := json.Unmarshal([]byte(v), &data)
 			if err == nil {
 				o[field] = data
 				parsed = true
+				retType = "object"
 			}
 		} else if v[0] == '[' {
 			var data []Object
@@ -529,19 +536,24 @@ func (o Object) Unmarshal(field string, raw any) {
 			if err == nil {
 				o[field] = data
 				parsed = true
+				retType = "object"
 			}
 		}
 		if !parsed {
 			o[field] = v
+			retType = "string"
 		}
 	case map[string]any:
 		o[field] = v
+		retType = "object"
 	case []map[string]any:
 		o[field] = v
+		retType = "object"
 	default:
 		o[field] = structToObject(v)
+		retType = "object"
 	}
-
+	return retType
 }
 
 const (
