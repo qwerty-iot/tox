@@ -30,6 +30,7 @@ import (
 	"errors"
 	"fmt"
 	. "reflect"
+	"unsafe"
 )
 
 type copier func(any, map[uintptr]any) (any, error)
@@ -163,8 +164,7 @@ func _pointer(x any, ptrs map[uintptr]any) (any, error) {
 	}
 
 	if v.IsNil() {
-		t := TypeOf(x)
-		return Zero(t).Interface(), nil
+		return Zero(TypeOf(x)).Interface(), nil
 	}
 
 	addr := v.Pointer()
@@ -174,15 +174,13 @@ func _pointer(x any, ptrs map[uintptr]any) (any, error) {
 	t := TypeOf(x)
 	dc := New(t.Elem())
 	ptrs[addr] = dc.Interface()
-	if !v.IsNil() {
-		item, err := _anything(v.Elem().Interface(), ptrs)
-		if err != nil {
-			return nil, fmt.Errorf("failed to copy the value under the pointer %v: %v", v, err)
-		}
-		iv := ValueOf(item)
-		if iv.IsValid() {
-			dc.Elem().Set(ValueOf(item))
-		}
+	item, err := _anything(v.Elem().Interface(), ptrs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to copy the value under the pointer %v: %v", v, err)
+	}
+	iv := ValueOf(item)
+	if iv.IsValid() {
+		dc.Elem().Set(ValueOf(item))
 	}
 	return dc.Interface(), nil
 }
@@ -193,17 +191,47 @@ func _struct(x any, ptrs map[uintptr]any) (any, error) {
 		return nil, fmt.Errorf("must pass a value with kind of Struct; got %v", v.Kind())
 	}
 	t := TypeOf(x)
+
+	// To access unexported fields via UnsafeAddr, the value must be addressable.
+	// If it's not addressable, we create a new addressable copy of it.
+	if !v.CanAddr() {
+		nv := New(t).Elem()
+		nv.Set(v)
+		v = nv
+	}
+
 	dc := New(t)
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
+		fv := v.Field(i)
+		df := dc.Elem().Field(i)
+
 		if f.PkgPath != "" {
+			// Unexported field from another package
+			ptr := unsafe.Pointer(fv.UnsafeAddr())
+			rfv := NewAt(f.Type, ptr).Elem()
+
+			item, err := _anything(rfv.Interface(), ptrs)
+			if err != nil {
+				return nil, fmt.Errorf("failed to copy the unexported field %v in the struct %#v: %v", t.Field(i).Name, x, err)
+			}
+
+			dptr := unsafe.Pointer(df.UnsafeAddr())
+			drfv := NewAt(f.Type, dptr).Elem()
+
+			if item != nil {
+				drfv.Set(ValueOf(item))
+			}
 			continue
 		}
-		item, err := _anything(v.Field(i).Interface(), ptrs)
+
+		item, err := _anything(fv.Interface(), ptrs)
 		if err != nil {
 			return nil, fmt.Errorf("failed to copy the field %v in the struct %#v: %v", t.Field(i).Name, x, err)
 		}
-		dc.Elem().Field(i).Set(ValueOf(item))
+		if item != nil {
+			df.Set(ValueOf(item))
+		}
 	}
 	return dc.Elem().Interface(), nil
 }

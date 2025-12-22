@@ -15,10 +15,11 @@ func IsNumber(i any) bool {
 		return true
 	case string:
 		if _, err := strconv.Atoi(v); err != nil {
-			return false
-		} else {
-			return true
+			if _, err = strconv.ParseFloat(v, 64); err != nil {
+				return false
+			}
 		}
+		return true
 	default:
 		return false
 	}
