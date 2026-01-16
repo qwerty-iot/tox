@@ -741,6 +741,7 @@ func (o Object) ConvertStructs() {
 	if o == nil {
 		return
 	}
-	b, _ := json.Marshal(o)
-	_ = json.Unmarshal(b, &o)
+	for k, v := range o {
+		o[k] = structToAnything(v)
+	}
 }

@@ -103,7 +103,8 @@ func (s *ReportSuite) TestStructs() {
 	old = Object{"a": "abc", "b": 123, "c": &FooUnexported{A: "abc", b: 456, C: Foo{A: "abc", B: 456}}}
 	s.Equal("{\"a\":\"abc\",\"b\":123,\"c\":{\"a\":\"abc\",\"c\":{\"a\":\"abc\",\"b\":456}}}", old.JsonString(false))
 
-	old = Object{"a": "abc", "b": time.Now()}
+	now := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	old = Object{"a": "abc", "b": now}
 	old.RemoveNaN()
-	s.Equal("{\"a\":\"abc\",\"b\":123,\"c\":{\"a\":\"abc\",\"c\":{\"a\":\"abc\",\"b\":456}}}", old.JsonString(false))
+	s.Equal("{\"a\":\"abc\",\"b\":\"2023-01-01T00:00:00Z\"}", old.JsonString(false))
 }

@@ -1,11 +1,12 @@
 package tox
 
 import (
+	"fmt"
 	"math"
 	"reflect"
+	"strings"
+	"time"
 	"unicode"
-
-	"github.com/goccy/go-json"
 )
 
 func isUnicode(s []byte) bool {
@@ -36,40 +37,98 @@ func isASCII(s []byte) bool {
 }
 
 func structToObject(input any) Object {
-	b, err := json.Marshal(input)
-	if err == nil {
-		var obj Object
-		_ = json.Unmarshal(b, &obj)
+	res := structToAnything(input)
+	if obj, ok := res.(Object); ok {
 		return obj
+	}
+	if m, ok := res.(map[string]any); ok {
+		return Object(m)
 	}
 	return nil
 }
 
-/*
-future implementation
-func structToObject(input any) any {
-	structValue := reflect.ValueOf(input)
-	if structValue.Kind() == reflect.Struct {
+func structToAnything(input any) any {
+	if input == nil {
+		return nil
+	}
+
+	v := reflect.ValueOf(input)
+	t := reflect.TypeOf(input)
+
+	// Handle pointers
+	for v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return nil
+		}
+		v = v.Elem()
+		t = v.Type()
+	}
+
+	// Special case: time.Time should be returned as is
+	if _, ok := v.Interface().(time.Time); ok {
+		return v.Interface()
+	}
+
+	// Special case: []byte should be returned as is
+	if b, ok := v.Interface().([]byte); ok {
+		return b
+	}
+
+	switch v.Kind() {
+	case reflect.Struct:
 		result := Object{}
-		structType := reflect.TypeOf(input)
-		for i := 0; i < structValue.NumField(); i++ {
-			field := structValue.Field(i)
-			fieldName := structType.Field(i).Name
-			if jt := structType.Field(i).Tag.Get("json"); len(jt) != 0 {
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Field(i)
+			structField := t.Field(i)
+
+			// Skip unexported fields
+			if structField.PkgPath != "" {
+				continue
+			}
+
+			fieldName := structField.Name
+			omitempty := false
+			if jt := structField.Tag.Get("json"); len(jt) != 0 {
+				if jt == "-" {
+					continue
+				}
 				ss := strings.Split(jt, ",")
-				fieldName = ss[0]
+				if ss[0] != "" {
+					fieldName = ss[0]
+				}
+				for _, opt := range ss[1:] {
+					if opt == "omitempty" {
+						omitempty = true
+					}
+				}
 			}
-			if !unicode.IsLower(rune(fieldName[0])) {
-				result[fieldName] = structToObject(field.Interface())
+
+			if omitempty && field.IsZero() {
+				continue
 			}
+
+			result[fieldName] = structToAnything(field.Interface())
 		}
 		return result
-	} else if structValue.Kind() == reflect.Ptr && structValue.Elem().Kind() == reflect.Struct {
-		return structToObject(structValue.Elem().Interface())
+
+	case reflect.Slice, reflect.Array:
+		result := make([]any, v.Len())
+		for i := 0; i < v.Len(); i++ {
+			result[i] = structToAnything(v.Index(i).Interface())
+		}
+		return result
+
+	case reflect.Map:
+		result := make(map[string]any)
+		for _, key := range v.MapKeys() {
+			result[fmt.Sprintf("%v", key.Interface())] = structToAnything(v.MapIndex(key).Interface())
+		}
+		return result
+
+	default:
+		return v.Interface()
 	}
-	return input
 }
-*/
 
 func removeNaN(a any, parent string, toBeDeleted *[]string) {
 	if len(parent) != 0 {
