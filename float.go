@@ -2,6 +2,7 @@ package tox
 
 import (
 	"math"
+	"reflect"
 	"strconv"
 )
 
@@ -33,7 +34,10 @@ func ToFloat64(v interface{}) float64 {
 	case float64:
 		return v
 	case string:
-		i, _ := strconv.ParseFloat(v, 64)
+		i, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return math.NaN()
+		}
 		return i
 	case bool:
 		if v {
@@ -51,4 +55,38 @@ func ToFloat64Ptr(v interface{}) *float64 {
 	}
 	ret := ToFloat64(v)
 	return &ret
+}
+
+func ToFloat64Array(v interface{}) []float64 {
+	switch v := v.(type) {
+	case nil:
+		return nil
+	case float64:
+		return []float64{v}
+	case []float64:
+		return v
+	case []byte:
+		var ret = make([]float64, len(v))
+		for ii, vv := range v {
+			ret[ii] = float64(vv)
+		}
+		return ret
+	case []any:
+		var ret = make([]float64, len(v))
+		for ii, vv := range v {
+			ret[ii] = ToFloat64(vv)
+		}
+		return ret
+	default:
+		aVal := reflect.ValueOf(v)
+		if aVal.Kind() == reflect.Array || aVal.Kind() == reflect.Slice {
+			var ret = make([]float64, aVal.Len())
+			for i := 0; i < aVal.Len(); i++ {
+				ret[i] = ToFloat64(aVal.Index(i).Interface())
+			}
+			return ret
+		} else {
+			return []float64{ToFloat64(v)}
+		}
+	}
 }
