@@ -341,6 +341,17 @@ func (o Object) GetStringArray(key string, def []string) []string {
 	}
 }
 
+func (o Object) GetFloat64Array(key string, def []float64) []float64 {
+	if o == nil {
+		return def
+	}
+	if field := o.Get(key); field != nil {
+		return ToFloat64Array(field)
+	} else {
+		return def
+	}
+}
+
 func (o Object) GetInt(key string, def int) int {
 	if o == nil {
 		return def

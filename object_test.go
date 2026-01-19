@@ -108,3 +108,19 @@ func (s *ReportSuite) TestStructs() {
 	old.RemoveNaN()
 	s.Equal("{\"a\":\"abc\",\"b\":\"2023-01-01T00:00:00Z\"}", old.JsonString(false))
 }
+
+func (s *ReportSuite) TestGetFloat64Array() {
+	o := Object{
+		"a": []float64{1.1, 2.2},
+		"b": []int{1, 2},
+		"c": "not an array",
+	}
+
+	s.Equal([]float64{1.1, 2.2}, o.GetFloat64Array("a", nil))
+	s.Equal([]float64{1.0, 2.0}, o.GetFloat64Array("b", nil))
+	res := o.GetFloat64Array("c", nil)
+	s.Len(res, 1)
+	s.True(math.IsNaN(res[0]), "Should return NaN for invalid float string in array conversion")
+	s.Equal([]float64{9.9}, o.GetFloat64Array("d", []float64{9.9}))
+	s.Nil(o.GetFloat64Array("d", nil))
+}
