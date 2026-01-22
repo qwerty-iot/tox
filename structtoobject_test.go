@@ -110,3 +110,61 @@ func TestPointerToStruct(t *testing.T) {
 	var nilTs *TestStruct
 	assert.Nil(t, structToObject(nilTs))
 }
+
+type mockObjectID [12]byte
+
+func (id *mockObjectID) UnmarshalJSON(data []byte) error {
+	s := string(data)
+	if s == "\"0123456789abcdef01234567\"" {
+		*id = mockObjectID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+	} else if s == "\"fedcba987654321012345678\"" {
+		*id = mockObjectID{0xf, 0xe, 0xd, 0xc, 0xb, 0xa, 9, 8, 7, 6, 5, 4}
+	}
+	return nil
+}
+
+func (id mockObjectID) MarshalJSON() ([]byte, error) {
+	if id == (mockObjectID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}) {
+		return []byte("\"0123456789abcdef01234567\""), nil
+	}
+	return []byte("\"fedcba987654321012345678\""), nil
+}
+
+func (id mockObjectID) Hex() string {
+	if id == (mockObjectID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}) {
+		return "0123456789abcdef01234567"
+	}
+	return "fedcba987654321012345678"
+}
+
+type MongoStruct struct {
+	Id       mockObjectID  `json:"id"`
+	Name     string        `json:"name"`
+	ParentId *mockObjectID `json:"parentId,omitempty"`
+}
+
+func TestMongoObjectIdHandling(t *testing.T) {
+	oid := mockObjectID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+	ms := MongoStruct{
+		Id:   oid,
+		Name: "Test",
+	}
+
+	obj := NewObject(ms)
+
+	val := obj.Get("id")
+	assert.IsType(t, "", val, "ObjectID should be encoded as a string")
+	assert.Equal(t, oid.Hex(), val)
+
+	// Test pointer to ObjectID
+	parentOid := mockObjectID{0xf, 0xe, 0xd, 0xc, 0xb, 0xa, 9, 8, 7, 6, 5, 4}
+	ms.ParentId = &parentOid
+	obj = NewObject(ms)
+	assert.Equal(t, parentOid.Hex(), obj.Get("parentId"))
+
+	// Test ToStruct (decoding)
+	var decoded MongoStruct
+	obj.ToStruct(&decoded)
+	assert.Equal(t, oid, decoded.Id)
+	assert.Equal(t, &parentOid, decoded.ParentId)
+}

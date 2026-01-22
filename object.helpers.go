@@ -69,6 +69,22 @@ func structToAnything(input any) any {
 		return v.Interface()
 	}
 
+	// Handle types with Hex() method that look like ObjectID
+	if strings.Contains(t.String(), "ObjectID") {
+		if m, ok := v.Interface().(interface{ Hex() string }); ok {
+			return m.Hex()
+		}
+	}
+
+	// Handle pointers to types with Hex() method that look like ObjectID
+	if t.Kind() == reflect.Ptr && strings.Contains(t.Elem().String(), "ObjectID") {
+		if !v.IsNil() {
+			if m, ok := v.Interface().(interface{ Hex() string }); ok {
+				return m.Hex()
+			}
+		}
+	}
+
 	// Special case: []byte should be returned as is
 	if b, ok := v.Interface().([]byte); ok {
 		return b
