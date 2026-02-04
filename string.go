@@ -87,6 +87,15 @@ func ToStringOpts(v interface{}, options *Options) string {
 			return string(b)
 		}
 	default:
+
+		if reflect.ValueOf(v).Kind() == reflect.Ptr {
+			if reflect.ValueOf(v).IsNil() {
+				return ""
+			} else {
+				return ToString(reflect.ValueOf(v).Elem().Interface())
+			}
+		}
+
 		switch reflect.TypeOf(v).Name() {
 		case "DateTime":
 			if reflect.TypeOf(v).Kind() == reflect.Int64 {
