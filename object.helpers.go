@@ -7,29 +7,18 @@ import (
 	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 )
 
-func isUnicode(s []byte) bool {
-	for _, r := range string(s) {
-		if !unicode.IsPrint(r) {
-			return false
-		}
+// isUTF8Text is a conservative text heuristic for otherwise unparsed bytes.
+func isUTF8Text(s []byte) bool {
+	// Validate before ranging: invalid bytes otherwise become printable RuneError values.
+	if !utf8.Valid(s) {
+		return false
 	}
-	return true
-}
-
-func isASCII(s []byte) bool {
-	for i := 0; i < len(s); i++ {
-		// Check if character is above ASCII range
-		if s[i] > 165 {
-			return false
-		}
-		// Allow printable characters (0x20-0x7E)
-		if s[i] >= 0x20 && s[i] <= 0x7E {
-			continue
-		}
-		// Allow specific control characters: tab, newline, carriage return, space
-		if s[i] != 0x09 && s[i] != 0x0A && s[i] != 0x0D && s[i] != 0x20 {
+	for _, r := range string(s) {
+		// Preserve the existing allowance for tab, newline, and carriage return.
+		if unicode.IsControl(r) && r != '\t' && r != '\n' && r != '\r' {
 			return false
 		}
 	}

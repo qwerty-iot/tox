@@ -522,7 +522,7 @@ func (o Object) Unmarshal(field string, raw any) string {
 			}
 		}
 		if !parsed {
-			if isASCII(v) {
+			if isUTF8Text(v) {
 				o[field] = string(v)
 				retType = "string"
 			} else {
