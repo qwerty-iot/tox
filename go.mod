@@ -1,11 +1,11 @@
 module github.com/qwerty-iot/tox
 
-go 1.20
+go 1.23
 
 require (
 	dario.cat/mergo v1.0.2
 	github.com/davecgh/go-spew v1.1.1
-	github.com/goccy/go-json v0.10.5
+	github.com/goccy/go-json v0.12.0
 	github.com/stretchr/testify v1.11.1
 )
 
